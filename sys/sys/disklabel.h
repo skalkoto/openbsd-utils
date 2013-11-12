@@ -32,6 +32,11 @@
  *	@(#)disklabel.h	8.2 (Berkeley) 7/10/94
  */
 
+#ifdef _LINUX_PORT
+#include <sys/types.h>
+#include <stddef.h>
+#endif
+
 /*
  * Disk description table, see disktab(5)
  */

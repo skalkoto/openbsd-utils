@@ -37,6 +37,7 @@
 #ifndef _SYS_PARAM_H_
 #define	_SYS_PARAM_H_
 
+#ifndef _LINUX_PORT
 #define	BSD	199306		/* System version (year & month). */
 #define BSD4_3	1
 #define BSD4_4	1
@@ -64,6 +65,7 @@
  * MAXLOGNAME should be >= UT_NAMESIZE (see <utmp.h>)
  */
 #include <sys/syslimits.h>
+#endif /* _LINUX_PORT */
 
 #define	MAXCOMLEN	16		/* max command name remembered */
 #define	MAXINTERP	128		/* max interpreter file name length */
@@ -88,9 +90,11 @@
 /* Signals. */
 #include <sys/signal.h>
 
+#ifndef _LINUX_PORT
 /* Machine type dependent parameters. */
 #include <sys/limits.h>
 #include <machine/param.h>
+#endif /* _LINUX_PORT */
 
 #ifdef _KERNEL
 /*
