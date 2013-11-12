@@ -34,7 +34,9 @@
 
 #include <sys/param.h>
 #include <sys/ioctl.h>
+#ifndef _LINUX_PORT
 #include <sys/dkio.h>
+#endif
 #include <sys/stat.h>
 #include <sys/wait.h>
 #define DKTYPENAMES
@@ -52,7 +54,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef _LINUX_PORT
 #include <util.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <bsd/stdlib.h>
+#endif
 #include <fstab.h>
 #include "pathnames.h"
 #include "extern.h"
@@ -214,8 +223,13 @@ main(int argc, char *argv[])
 		usage();
 
 	dkname = argv[0];
+#ifndef _LINUX_PORT
 	f = opendev(dkname, (op == READ ? O_RDONLY : O_RDWR), OPENDEV_PART,
 	    &specname);
+#else
+	specname = dkname;
+	f = open(dkname, (op == READ ? O_RDONLY : O_RDWR));
+#endif
 	if (f < 0)
 		err(4, "%s", specname);
 
@@ -226,12 +240,14 @@ main(int argc, char *argv[])
 		readlabel(f);
 		error = edit(&lab, f);
 		break;
+#if 0
 	case EDITOR:
 		if (argc != 1)
 			usage();
 		readlabel(f);
 		error = editor(f);
 		break;
+#endif
 	case READ:
 		if (argc != 1)
 			usage();
@@ -242,6 +258,7 @@ main(int argc, char *argv[])
 			display(stdout, &lab, print_unit, 1);
 		error = checklabel(&lab);
 		break;
+#if 0
 	case RESTORE:
 		if (argc < 2 || argc > 3)
 			usage();
@@ -260,6 +277,7 @@ main(int argc, char *argv[])
 			error = writelabel(f, bootarea, lp);
 		fclose(t);
 		break;
+#endif
 	case WRITE:
 		if (dflag | aflag) {
 			readlabel(f);
@@ -304,6 +322,7 @@ main(int argc, char *argv[])
 void
 makelabel(char *type, char *name, struct disklabel *lp)
 {
+#if 0
 	struct disklabel *dp;
 
 	dp = getdiskbyname(type);
@@ -331,12 +350,14 @@ makelabel(char *type, char *name, struct disklabel *lp)
 	memset(lp->d_packname, 0, sizeof(lp->d_packname));
 	if (name)
 		(void)strncpy(lp->d_packname, name, sizeof(lp->d_packname));
+#endif
 }
 
 
 int
 writelabel(int f, char *boot, struct disklabel *lp)
 {
+#if 0
 #if NUMBOOT > 0
 	setbootflag(lp);
 #endif
@@ -407,7 +428,7 @@ writelabel(int f, char *boot, struct disklabel *lp)
 			err(4, "ioctl DIOCGDINFO");
 		mpsave(lp);
 	}
-
+#endif
 	return (0);
 }
 
@@ -442,6 +463,7 @@ l_perror(char *s)
 void
 readlabel(int f)
 {
+#if 0
 	char *partname, *partduid;
 	struct fstab *fsent;
 	int i;
@@ -478,6 +500,7 @@ readlabel(int f)
 
 	if (aflag)
 		editor_allocspace(&lab);
+#endif
 }
 
 /*
@@ -803,6 +826,7 @@ display(FILE *f, struct disklabel *lp, char unit, int all)
 int
 edit(struct disklabel *lp, int f)
 {
+#if 0
 	int first, ch, fd, error = 0;
 	struct disklabel label;
 	FILE *fp;
@@ -868,6 +892,7 @@ edit(struct disklabel *lp, int f)
 			break;
 	}
 	(void)unlink(tmpfil);
+#endif
 	return (1);
 }
 
