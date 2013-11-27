@@ -37,7 +37,9 @@
 #ifndef _SYS_PARAM_H_
 #define	_SYS_PARAM_H_
 
-#ifndef _LINUX_PORT
+#ifdef _LINUX_PORT
+#define NBBY    8
+#else /* _LINUX_PORT */
 #define	BSD	199306		/* System version (year & month). */
 #define BSD4_3	1
 #define BSD4_4	1
