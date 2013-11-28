@@ -2,7 +2,7 @@
 # ufsutils Makefile
 #
 
-SUBDIRS = sbin/disklabel
+SUBDIRS = sbin/disklabel sbin/growfs
 
 clean_targets = $(addsuffix -clean,$(SUBDIRS))
 install_targets = $(addsuffix -install,$(SUBDIRS))
