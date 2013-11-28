@@ -45,7 +45,9 @@
 #include <sys/param.h>
 #include <sys/disklabel.h>
 #include <sys/ioctl.h>
+#ifndef _LINUX_PORT
 #include <sys/dkio.h>
+#endif
 #include <sys/stat.h>
 
 #include <stdio.h>
@@ -59,7 +61,14 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#ifndef _LINUX_PORT
 #include <util.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <bsd/stdlib.h>
+#endif
 
 #include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
