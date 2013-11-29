@@ -12,7 +12,7 @@ MAN=	growfs.8
 #CFLAGS+=-Wall
 
 DPADD=	${LIBUTIL}
-LDADD=	-lutil -lbsd
+LDADD=	-lutil -lbsd -lport -L../../lib/port
 
 #.if defined(GFSDBG)
 #SRCS+=  debug.c

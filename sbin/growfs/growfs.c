@@ -153,8 +153,10 @@ static void	setblock(struct fs *, unsigned char *, int);
 static void	initcg(int, time_t, int, unsigned int);
 static void	updjcg(int, time_t, int, int, unsigned int);
 static void	updcsloc(time_t, int, int, unsigned int);
+#ifndef _LINUX_PORT
 static struct disklabel	*get_disklabel(int);
 static void	return_disklabel(int, struct disklabel *, unsigned int);
+#endif
 static union dinode *ginode(ino_t, int, int);
 static void	frag_adjust(daddr_t, int);
 static int	cond_bl_upd(daddr_t *, struct gfs_bpp *, int, int,
@@ -1913,14 +1915,20 @@ main(int argc, char **argv)
 	unsigned int	size = 0;
 	unsigned int	Nflag = 0;
 	int	ExpertFlag = 0;
+#ifndef _LINUX_PORT
 	struct stat	st;
 	struct disklabel	*lp;
 	struct partition	*pp;
+#endif
 	int	i,fsi,fso;
 	char	reply[5];
 #ifdef FSMAXSNAP
 	int	j;
 #endif /* FSMAXSNAP */
+
+#ifdef _LINUX_PORT
+	unsigned int p_size = 0;
+#endif
 
 	DBG_ENTER;
 
@@ -1958,7 +1966,12 @@ main(int argc, char **argv)
 	 * Rather than guessing, use opendev() to get the device
 	 * name, which we open for reading.
 	 */
+#ifndef _LINUX_PORT
 	if ((fsi = opendev(*argv, O_RDONLY, 0, &device)) < 0)
+#else
+	device = *argv;
+	if ((fsi = open(device, O_RDONLY, 0)) < 0)
+#endif /* _LINUX_PORT */
 		err(1, "%s", *argv);
 
 	/*
@@ -1972,6 +1985,7 @@ main(int argc, char **argv)
 			err(1, "%s", device);
 	}
 
+#ifndef _LINUX_PORT
 	/*
 	 * Now we have a file descriptor for our device, fstat() it to
 	 * figure out the partition number.
@@ -1999,6 +2013,10 @@ main(int argc, char **argv)
 	if (pp->p_fstype != FS_BSDFFS)
 		errx(1, "can only grow ffs partitions");
 
+#else
+	if (get_size(fsi, &p_size) < 0)
+		errx(1, "can't determine the media size");
+#endif
 	/*
 	 * Read the current superblock, and take a backup.
 	 */
@@ -2029,6 +2047,7 @@ main(int argc, char **argv)
 	 * Determine size to grow to. Default to the full size specified in
 	 * the disk label.
 	 */
+#ifndef _LINUX_PORT
 	sblock.fs_size = dbtofsb(&osblock, pp->p_size);
 	if (size != 0) {
 		if (size > pp->p_size) {
@@ -2037,6 +2056,16 @@ main(int argc, char **argv)
 		}
 		sblock.fs_size = dbtofsb(&osblock, size);
 	}
+#else
+	sblock.fs_size = dbtofsb(&osblock, p_size);
+	if (size != 0) {
+		if (size > p_size) {
+			errx(1, "there is not enough space (%d < %d)",
+			    p_size, size);
+		}
+		sblock.fs_size = dbtofsb(&osblock, size);
+	}
+#endif
 
 	/*
 	 * Are we really growing ?
@@ -2084,7 +2113,11 @@ main(int argc, char **argv)
 	 * later on realize we have to abort our operation, on that block
 	 * there should be no data, so we can't destroy something yet.
 	 */
+#ifndef _LINUX_PORT
 	wtfs((daddr_t)pp->p_size-1, (size_t)DEV_BSIZE, (void *)&sblock,
+#else
+	wtfs((daddr_t)p_size-1, (size_t)DEV_BSIZE, (void *)&sblock,
+#endif
 	    fso, Nflag);
 
 	/*
@@ -2142,6 +2175,9 @@ main(int argc, char **argv)
 	 */
 	growfs(fsi, fso, Nflag);
 
+/* TODO: Find a way to update the disklabel with the new fragblock and cpg. In
+most of the cases it will be the same as the old one I think. */
+#ifndef _LINUX_PORT
 	/*
 	 * Update the disk label.
 	 */
@@ -2152,6 +2188,7 @@ main(int argc, char **argv)
 	return_disklabel(fso, lp, Nflag);
 	DBG_PRINT0("label rewritten\n");
 
+#endif
 	close(fsi);
 	if (fso > -1)
 		close(fso);
@@ -2166,6 +2203,7 @@ main(int argc, char **argv)
 /*
  * Write the updated disklabel back to disk.
  */
+#ifndef _LINUX_PORT
 static void
 return_disklabel(int fd, struct disklabel *lp, unsigned int Nflag)
 {
@@ -2200,10 +2238,13 @@ return_disklabel(int fd, struct disklabel *lp, unsigned int Nflag)
 	return ;
 }
 
+#endif
+
 /* ***************************************************** get_disklabel ***** */
 /*
  * Read the disklabel from disk.
  */
+#ifndef _LINUX_PORT
 static struct disklabel *
 get_disklabel(int fd)
 {
@@ -2222,6 +2263,7 @@ get_disklabel(int fd)
 	return (lab);
 }
 
+#endif /* _LINUX_PORT */
 
 /* ************************************************************* usage ***** */
 /*

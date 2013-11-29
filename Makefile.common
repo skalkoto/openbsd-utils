@@ -13,7 +13,7 @@ man8dir = $(mandir)/man8
 
 #LDADD += -lbsd
 CFLAGS ?= -Wall -g -O2
-ALL_CFLAGS +=  -I../../sys -I../../lib/port -D_GNU_SOURCE -D_LINUX_PORT
+ALL_CFLAGS +=  -I../../sys -I../../lib/port -include port.h -include bsd/bsd.h -D_GNU_SOURCE -D_LINUX_PORT
 
 INSTALL = install
 INSTALL_PROG = $(INSTALL)
