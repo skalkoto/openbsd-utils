@@ -39,7 +39,11 @@
  */
 
 #include <sys/param.h>
+#ifndef _LINUX_PORT
 #include <sys/time.h>
+#else
+#include <time.h>
+#endif /* _LINUX_PORT */
 
 #include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
@@ -52,7 +56,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef _LINUX_PORT
 #include <util.h>
+#endif
 
 union {
 	struct fs fs;
@@ -73,12 +79,18 @@ int	dumpcg(const char *, int, int);
 int	marshal(const char *);
 int	open_disk(const char *);
 void	pbits(void *, int);
+#ifndef _LINUX_PORT
 __dead void	usage(void);
+#else
+void usage(void);
+#endif /* _LINUX_PORT */
 
 int
 main(int argc, char *argv[])
 {
+#ifndef _LINUX_PORT
 	struct fstab *fs;
+#endif /* _LINUX_PORT */
 	const char *name;
 	int ch, domarshal, eval, fd;
 
@@ -101,9 +113,11 @@ main(int argc, char *argv[])
 		usage();
 
 	for (; *argv != NULL; argv++) {
+#ifndef _LINUX_PORT
 		if ((fs = getfsfile(*argv)) != NULL)
 			name = fs->fs_spec;
 		else
+#endif /* _LINUX_PORT */
 			name = *argv;
 		if ((fd = open_disk(name)) == -1) {
 			eval |= 1;
@@ -125,7 +139,11 @@ open_disk(const char *name)
 	ssize_t n;
 
 	/* XXX - should retry w/raw device on failure */
+#ifndef _LINUX_PORT
 	if ((fd = opendev(name, O_RDONLY, 0, NULL)) < 0) {
+#else
+	if ((fd = open(name, O_RDONLY, 0)) < 0) {
+#endif /* _LINUX_PORT */
 		warn("%s", name);
 		return(-1);
 	}
@@ -458,7 +476,11 @@ pbits(void *vp, int max)
 	printf("\n");
 }
 
+#ifndef _LINUX_PORT
 __dead void
+#else
+void
+#endif /* _LINUX_PORT */
 usage(void)
 {
 	(void)fprintf(stderr, "usage: dumpfs [-m] filesys | device\n");
