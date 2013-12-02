@@ -48,7 +48,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifndef _LINUX_PORT
 #include <util.h>
+#else
+#include <limits.h>
+#endif /* _LINUX_PORT */
 
 /* the optimization warning string template */
 #define	OPTWARN	"should optimize for %s with minfree %s %d%%"
@@ -71,7 +75,9 @@ static	void	bwrite(daddr_t, char *, int, const char *);
 static	void	bread(daddr_t, char *, int, const char *);
 static	int	getnum(const char *, const char *, int, int);
 static	void	getsb(struct fs *, const char *);
+#ifndef _LINUX_PORT
 static	int	openpartition(char *, int, char **);
+#endif
 static	void	usage(void);
 
 int
@@ -149,10 +155,14 @@ main(int argc, char *argv[])
 
 	special = argv[0];
 	openflags = Nflag ? O_RDONLY : O_RDWR;
+#ifndef _LINUX_PORT
 	if (Fflag)
 		fi = open(special, openflags);
 	else
 		fi = openpartition(special, openflags, &special);
+#else
+	fi = open(special, openflags);
+#endif /* _LINUX_PORT */
 	if (fi == -1)
 		err(1, "%s", special);
 	getsb(&sblock, special);
@@ -316,6 +326,7 @@ bread(daddr_t blk, char *buffer, int cnt, const char *file)
 		errx(5, "%s: short read", file);
 }
 
+#ifndef _LINUX_PORT
 static int
 openpartition(char *name, int flags, char **devicep)
 {
@@ -337,3 +348,4 @@ openpartition(char *name, int flags, char **devicep)
 		devicep = &name;
 	return (fd);
 }
+#endif /* _LINUX_PORT */
