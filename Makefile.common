@@ -15,7 +15,7 @@ man8dir = $(mandir)/man8
 CFLAGS ?= -Wall -g -O2
 ALL_CFLAGS +=  -I../../sys -I../../lib/port -include port.h -include bsd/bsd.h -D_GNU_SOURCE -D_LINUX_PORT
 
-INSTALL = install
+INSTALL = install -D
 INSTALL_PROG = $(INSTALL)
 INSTALL_DATA = $(INSTALL) -m 644
 
@@ -77,10 +77,10 @@ clean::
 
 install::
 ifdef PROG
-	$(INSTALL_PROG) $(PROG) $(DESTDIR)$(sbindir)
+	$(INSTALL_PROG) $(PROG) $(DESTDIR)$(sbindir)/$(PROG)
 endif
 ifdef MAN
-	$(INSTALL_DATA) $(subst :, $(DESTDIR)$(man8dir)/,$(MAN))
+	$(INSTALL_DATA) $(MAN) $(DESTDIR)$(man8dir)/$(MAN)
 endif
 ifneq (,$(findstring static,$(LIB_type)))
 	$(INSTALL_DATA) lib$(LIB).a $(DESTDIR)$(libdir)/lib$(LIB).a
