@@ -2,7 +2,7 @@
 # ufsutils Makefile
 #
 
-SUBDIRS = lib/port sbin/growfs sbin/tunefs sbin/dumpfs
+SUBDIRS = lib/port sbin/growfs sbin/tunefs sbin/dumpfs sbin/disklabel
 
 clean_targets = $(addsuffix -clean,$(SUBDIRS))
 install_targets = $(addsuffix -install,$(SUBDIRS))
