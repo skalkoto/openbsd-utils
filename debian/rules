@@ -1,12 +1,27 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-DESTDIR = $(CURDIR)/debian/tmp
+export DH_VERBOSE=1
+
+DESTDIR = $(CURDIR)/debian/openbsd-utils
+DEB_HOST_ARCH_OS = $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+
+CFLAGS = -Wall $(shell dpkg-buildflags --get CFLAGS)
+CPPFLAGS = $(shell dpkg-buildflags --get CPPFLAGS)
+LDFLAGS = $(shell dpkg-buildflags --get LDFLAGS)
 
 %:
 	dh $@
 
-override_dh_auto_install:
+override_dh_auto_build:
+	CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" $(MAKE)
+
+override_dh_install:
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
 	$(MAKE) install DESTDIR=$(DESTDIR) prefix=/usr
 	rm -rf $(DESTDIR)/usr/lib
 
