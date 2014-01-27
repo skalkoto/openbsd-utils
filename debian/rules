@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+DESTDIR = $(CURDIR)/debian/tmp
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	$(MAKE) install DESTDIR=$(DESTDIR) prefix=/usr
+	rm -rf $(DESTDIR)/usr/lib
+
+

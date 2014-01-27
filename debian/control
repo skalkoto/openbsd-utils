@@ -1,0 +1,21 @@
+Source: openbsd-utils
+Section: utils
+Priority: optional
+Maintainer: Nikos Skalkotos <skalkoto@grnet.gr>
+Build-Depends: dpkg-dev (>= 1.15.7), debhelper (>= 7), libbsd-dev, libedit-dev,
+ libc0.1-dev (>= 2.10.1)
+Standards-Version: 3.9.2
+Homepage: https://github.com/skalkoto/openbsd-utils
+Vcs-Git: git://github.com/skalkoto/openbsd-utils
+Vcs-Browser: https://github.com/skalkoto/openbsd-utils
+
+Package: openbsd-utils
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, python
+Description: OpenBSD utilities for disklabel and UFS filesystem
+ The following utilities are provided:
+  * tunefs
+  * growfs
+  * dumpfs
+  * disklabel-edit
+
