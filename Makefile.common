@@ -77,11 +77,15 @@ clean::
 
 install::
 ifdef PROG
-	$(INSTALL_PROG) $(PROG) $(DESTDIR)$(sbindir)/$(PROG)
+	$(INSTALL_PROG) $(PROG) $(DESTDIR)$(sbindir)/$(addsuffix .openbsd,$(PROG))
 endif
 ifdef MAN
-	$(INSTALL_DATA) $(MAN) $(DESTDIR)$(man8dir)/$(MAN)
+	$(INSTALL_DATA) $(MAN) $(DESTDIR)$(man8dir)/$(basename $(MAN)).openbsd.8
 endif
+ifdef PYTHON_PROG
+	$(INSTALL_PROG) $(PYTHON_PROG) $(DESTDIR)$(sbindir)/$(addsuffix .openbsd,$(PYTHON_PROG))
+endif
+
 ifneq (,$(findstring static,$(LIB_type)))
 	$(INSTALL_DATA) lib$(LIB).a $(DESTDIR)$(libdir)/lib$(LIB).a
 endif
