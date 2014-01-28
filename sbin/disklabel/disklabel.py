@@ -552,7 +552,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if options.last_part:
-        print "%d" disklabel.get_last_partition_id()
+        print "%d" % disklabel.get_last_partition_id()
 
     if options.disk_size is not None:
         disklabel.enlarge_disk(options.disk_size)
