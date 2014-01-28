@@ -53,6 +53,7 @@ SBSIZE = 8192  # max size of fs superblock
 
 DISKMAGIC = 0x82564557
 
+
 class MBR(object):
     """Represents a Master Boot Record."""
     class Partition(object):
@@ -217,7 +218,7 @@ class Disklabel:
         13      1               Filesystem Fragment per block
         14      2               FS cylinders per group
         """
-        
+
         Partition = namedtuple(
             'Partition', 'size, offset, offseth, sizeh, fstype, frag, cpg')
 
@@ -226,7 +227,7 @@ class Disklabel:
             self.part = []
 
             size = struct.calcsize(self.format)
-            
+
             raw = cStringIO.StringIO(ptable)
             try:
                 for i in range(pnumber):
@@ -261,8 +262,8 @@ class Disklabel:
             """Set size for partition i"""
             tmp = self.part[i]
             self.part[i] = self.Partition(size & 0xffffffff, tmp.offset,
-                                     tmp.offseth, size >> 32, tmp.fstype,
-                                     tmp.frag, tmp.cpg)
+                                          tmp.offseth, size >> 32, tmp.fstype,
+                                          tmp.frag, tmp.cpg)
 
         def getpsize(self, i):
             return (self.part[i].sizeh << 32) + self.part[i].size
@@ -271,12 +272,11 @@ class Disklabel:
             """Set  offset for partition i"""
             tmp = self.part[i]
             self.part[i] = self.Partition(tmp.size, offset & 0xffffffff,
-                                    offset >> 32, tmp.sizeh, tmp.frag,
-                                    tmp.cpg)
+                                          offset >> 32, tmp.sizeh, tmp.frag,
+                                          tmp.cpg)
 
         def getpoffset(self, i):
             return (self.part[i].offseth << 32) + self.part[i].offset
-
 
     def __init__(self, disk):
         """Create a DiskLabel instance"""
@@ -291,7 +291,7 @@ class Disklabel:
                 if self.mbr.part[i].type == 0xa6:  # OpenBSD type
                     self.part_num = i
                     break
-            
+
             assert self.part_num is not None, "No OpenBSD partition found"
 
             d.seek(BLOCKSIZE * self.mbr.part[self.part_num].first_sector)
@@ -441,9 +441,8 @@ class Disklabel:
             d.seek((self.mbr.part[self.part_num].first_sector + 1) * BLOCKSIZE)
             d.write(self.pack())
 
-    def enlarge_last_partition(self):
-        """Enlarge the last partition to cover up all the free space"""
-
+    def get_last_partition_id(self):
+        """Returns the id of the last partition"""
         part = 0
         end = 0
         # Don't check partition 'c' which is the whole disk
@@ -455,7 +454,18 @@ class Disklabel:
 
         assert end > 0, "No partition found"
 
-        if self.ptable.part[i].fstype == 1 :  # Swap partition.
+        return part
+
+    def enlarge_last_partition(self):
+        """Enlarge the last partition to cover up all the free space"""
+
+        part_num = self.get_last_partition_id()
+
+        end = self.ptable.getpsize(part_num) + self.ptable.getpoffset(part_num)
+
+        assert end > 0, "No partition found"
+
+        if self.ptable.part[part_num].fstype == 1:  # Swap partition.
             #TODO: Maybe create a warning?
             return
 
@@ -463,7 +473,7 @@ class Disklabel:
             return
 
         self.ptable.setpsize(
-            part, self.getbend() - self.ptable.getpoffset(i) - 1024)
+            part_num, self.getbend() - self.ptable.getpoffset(part_num) - 1024)
 
         self.checksum = self.compute_checksum()
 
@@ -472,36 +482,37 @@ class Disklabel:
         title1 = "Master Boot Record"
         title2 = "Disklabel"
 
-        return "%s\n%s\n%s\n" % (title1, len(title1) * "=", str(self.mbr)) + \
-               "%s\n%s\n" % (title2, len(title2) * "=") + \
-               "Magic Number: 0x%x\n" % self.magic + \
-               "Drive type: %d\n" % self.dtype + \
-               "Subtype: %d\n" % self.subtype + \
-               "Typename: %s\n" % self.typename + \
-               "Pack Identifier: %s\n" % self.packname + \
-               "Number of bytes per sector: %d\n" % self.secsize + \
-               "Number of data sectors per track: %d\n" % self.nsectors + \
-               "Number of tracks per cylinder: %d\n" % self.ntracks + \
-               "Number of data cylinders per unit: %d\n" % self.ncylinders + \
-               "Number of data sectors per cylinder: %d\n" % self.secpercyl + \
-               "Number of data sectors per unit: %d\n" % self.secperunit + \
-               "DUID: %s\n" % "".join(x.encode('hex') for x in self.uid) + \
-               "Alt. cylinders per unit: %d\n" % self.acylinders + \
-               "Start of useable region (high part): %d\n" % self.bstarth + \
-               "Size of useable region (high part): %d\n" % self.bendh + \
-               "Start of useable region: %d\n" % self.bstart + \
-               "End of usable region: %d\n" % self.bend + \
-               "Generic Flags: %r\n" % self.flags + \
-               "Drive data: %r\n" % self.drivedata + \
-               "Number of data sectors (high part): %d\n" % self.secperunith + \
-               "Version: %d\n" % self.version + \
-               "Reserved for future use: %r\n" % self.spare + \
-               "The magic number again: 0x%x\n" % self.magic2 + \
-               "Checksum: %d\n" % self.checksum + \
-               "Number of partitions: %d\n" % self.npartitions  + \
-               "Size of boot aread at sn0: %d\n" % self.bbsize + \
-               "Max size of fs superblock: %d\n" % self.sbsize + \
-               "%s" % self.ptable
+        return \
+            "%s\n%s\n%s\n" % (title1, len(title1) * "=", str(self.mbr)) + \
+            "%s\n%s\n" % (title2, len(title2) * "=") + \
+            "Magic Number: 0x%x\n" % self.magic + \
+            "Drive type: %d\n" % self.dtype + \
+            "Subtype: %d\n" % self.subtype + \
+            "Typename: %s\n" % self.typename + \
+            "Pack Identifier: %s\n" % self.packname + \
+            "Number of bytes per sector: %d\n" % self.secsize + \
+            "Number of data sectors per track: %d\n" % self.nsectors + \
+            "Number of tracks per cylinder: %d\n" % self.ntracks + \
+            "Number of data cylinders per unit: %d\n" % self.ncylinders + \
+            "Number of data sectors per cylinder: %d\n" % self.secpercyl + \
+            "Number of data sectors per unit: %d\n" % self.secperunit + \
+            "DUID: %s\n" % "".join(x.encode('hex') for x in self.uid) + \
+            "Alt. cylinders per unit: %d\n" % self.acylinders + \
+            "Start of useable region (high part): %d\n" % self.bstarth + \
+            "Size of useable region (high part): %d\n" % self.bendh + \
+            "Start of useable region: %d\n" % self.bstart + \
+            "End of usable region: %d\n" % self.bend + \
+            "Generic Flags: %r\n" % self.flags + \
+            "Drive data: %r\n" % self.drivedata + \
+            "Number of data sectors (high part): %d\n" % self.secperunith + \
+            "Version: %d\n" % self.version + \
+            "Reserved for future use: %r\n" % self.spare + \
+            "The magic number again: 0x%x\n" % self.magic2 + \
+            "Checksum: %d\n" % self.checksum + \
+            "Number of partitions: %d\n" % self.npartitions + \
+            "Size of boot aread at sn0: %d\n" % self.bbsize + \
+            "Max size of fs superblock: %d\n" % self.sbsize + \
+            "%s" % self.ptable
 
 
 if __name__ == '__main__':
@@ -512,6 +523,8 @@ if __name__ == '__main__':
     parser.add_option("-l", "--list", action="store_true", dest="list",
                       default=False,
                       help="list the disklabel on the specified media")
+    parser.add_option("--print-last", action="store_true", dest="last_part",
+                      default=False, help="print the id of the last partition")
     parser.add_option("--print-duid", action="store_true", dest="duid",
                       default=False,
                       help="print the disklabel unique identifier")
@@ -537,6 +550,9 @@ if __name__ == '__main__':
     if options.duid:
         print "%s" % "".join(x.encode('hex') for x in disklabel.uid)
         sys.exit(0)
+
+    if options.last_part:
+        print "%d" disklabel.get_last_partition_id()
 
     if options.disk_size is not None:
         disklabel.enlarge_disk(options.disk_size)
