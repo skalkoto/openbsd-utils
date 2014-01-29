@@ -10,11 +10,10 @@ Vcs-Browser: https://github.com/skalkoto/openbsd-utils
 
 Package: openbsd-utils
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, python
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: OpenBSD utilities for disklabel and UFS filesystem
  The following utilities are provided:
   * tunefs
   * growfs
   * dumpfs
-  * disklabel-edit
 
