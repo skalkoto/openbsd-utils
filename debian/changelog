@@ -1,3 +1,9 @@
+openbsd-utils (5.4.3-1) wheezy-helper; urgency=low
+
+  * New upstream version
+
+ -- Nikos Skalkotos <skalkoto@grnet.gr>  Wed, 29 Jan 2014 12:48:29 +0200
+
 openbsd-utils (5.4.2-1) wheezy-helper; urgency=low
 
   * New upstream version
